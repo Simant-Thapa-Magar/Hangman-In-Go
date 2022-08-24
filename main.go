@@ -3,20 +3,28 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"io/ioutil"
 	"math/rand"
 	"os"
 	"strconv"
 	"strings"
 	"time"
+	"unicode"
 )
 
 var Scanner = bufio.NewReader(os.Stdin)
 
 func main() {
 	// starting point
-	//hangmanState := 0
+	hangmanState := 0
 	selectedWord := initializeGame()
-	fmt.Println("Selected word is ", selectedWord)
+	var wordGuessTrack map[rune]bool
+	gameEnd := false
+	for !gameEnd {
+		displayHangman(hangmanState)
+		displayGame(selectedWord, wordGuessTrack)
+		gameEnd = true
+	}
 }
 
 func initializeGame() WordDictonary {
@@ -66,10 +74,26 @@ func generateANumber(max int) int {
 
 func displayHangman(hangmanState int) {
 	// displays hangman based on state
+	content, err := ioutil.ReadFile(fmt.Sprintf("states/hangman%d", hangmanState))
+
+	if err != nil {
+		panic("Something went wrong while drawing hangman !!!!")
+	}
+
+	fmt.Println(string(content))
 }
 
-func displayGame(targetWord string) {
+func displayGame(word WordDictonary, guessTrack map[rune]bool) {
 	// displays word with guessed and blanks for game
+	targetWord := word.Word
+	for index, letter := range targetWord {
+		if isInitiallyDisplayed(word.InitialDisplayPositions, index) || guessTrack[unicode.ToLower(rune(letter))] {
+			fmt.Print(string(letter))
+		} else {
+			fmt.Print("_")
+		}
+		fmt.Print(" ")
+	}
 }
 
 func getUserInput() {
@@ -95,4 +119,13 @@ func isHangmanComplete(hangmanState int) {
 func printReaderIcon() {
 	// displays a simple greater than icon to indicate user input is expected
 	fmt.Print("> ")
+}
+
+func isInitiallyDisplayed(arr []int, elem int) bool {
+	for _, v := range arr {
+		if v == elem {
+			return true
+		}
+	}
+	return false
 }
