@@ -6,6 +6,8 @@ import (
 	"io/ioutil"
 	"math/rand"
 	"os"
+	"os/exec"
+
 	"strconv"
 	"strings"
 	"time"
@@ -18,12 +20,40 @@ func main() {
 	// starting point
 	hangmanState := 0
 	selectedWord := initializeGame()
-	var wordGuessTrack map[rune]bool
+	var wordGuessTrack = make(map[rune]bool)
 	gameEnd := false
-	for !gameEnd {
-		displayHangman(hangmanState)
-		displayGame(selectedWord, wordGuessTrack)
-		gameEnd = true
+	showHint := false
+	success := false
+	var oldMessage string
+	for {
+		displayGame(hangmanState, selectedWord, wordGuessTrack, showHint, oldMessage)
+		if gameEnd {
+			break
+		}
+		userInput := getUserInput()
+		if userInput == "hint" {
+			showHint = true
+		} else {
+			message, isCorrectGuess := determineInputProgress(userInput, selectedWord, wordGuessTrack)
+			oldMessage = message
+			if !isCorrectGuess {
+				hangmanState++
+			} else {
+				wordGuessTrack[rune(strings.ToLower(userInput)[0])] = true
+			}
+		}
+		if isHangmanComplete(hangmanState) {
+			gameEnd = true
+		} else if isWordGuessedSuccessfully(selectedWord, wordGuessTrack) {
+			gameEnd = true
+			success = true
+		}
+	}
+
+	if success {
+		fmt.Println("Congratulations !!!! You won")
+	} else {
+		fmt.Println("Sorry you're dead !!!!")
 	}
 }
 
@@ -83,7 +113,7 @@ func displayHangman(hangmanState int) {
 	fmt.Println(string(content))
 }
 
-func displayGame(word WordDictonary, guessTrack map[rune]bool) {
+func displayWords(word WordDictonary, guessTrack map[rune]bool) {
 	// displays word with guessed and blanks for game
 	targetWord := word.Word
 	for index, letter := range targetWord {
@@ -94,26 +124,69 @@ func displayGame(word WordDictonary, guessTrack map[rune]bool) {
 		}
 		fmt.Print(" ")
 	}
+	fmt.Println()
 }
 
-func getUserInput() {
+func getUserInput() string {
 	// gets input from user for game
+	var trimmedInput string
+	isValidInput := false
+	for !isValidInput {
+		fmt.Println("Guess a word ")
+		printReaderIcon()
+		input, err := Scanner.ReadString('\n')
+
+		if err != nil {
+			panic("Error while reading input")
+		}
+
+		trimmedInput = strings.TrimSpace(input)
+		trimmedInput = strings.ToLower(trimmedInput)
+		isValidInput = validateUserInput(trimmedInput)
+	}
+
+	return trimmedInput
 }
 
-func validateUserInput() {
+func validateUserInput(input string) bool {
 	// validates user input for game
+	if input == "hint" || len(input) == 1 {
+		return true
+	}
+	return false
 }
 
-func determineInputProgress(input string) {
-	// determines if user input is correct or not or if user has asked for hint
+func determineInputProgress(input string, selectedWord WordDictonary, wordGuessTrack map[rune]bool) (string, bool) {
+	// determines if user input is correct or not
+	var message string
+	var isCorrectGuess bool
+	if wordGuessTrack[rune(input[0])] {
+		message = fmt.Sprintf("You have already guessed %s\n", string(input[0]))
+		isCorrectGuess = true
+	} else {
+		for _, letter := range selectedWord.Word {
+			if strings.ToLower(string(letter)) == input {
+				isCorrectGuess = true
+			}
+		}
+	}
+	return message, isCorrectGuess
 }
 
-func isWordGuessedSuccessfully() {
+func isWordGuessedSuccessfully(selectedWord WordDictonary, wordGuessTrack map[rune]bool) bool {
 	// determines if user has guessed the word successfully
+	for index, letter := range selectedWord.Word {
+		lowerRune := rune(strings.ToLower(string(letter))[0])
+		if !wordGuessTrack[lowerRune] && !isInitiallyDisplayed(selectedWord.InitialDisplayPositions, index) {
+			return false
+		}
+	}
+	return true
 }
 
-func isHangmanComplete(hangmanState int) {
+func isHangmanComplete(hangmanState int) bool {
 	// determines if hangman has been drawn completely
+	return hangmanState >= 9
 }
 
 func printReaderIcon() {
@@ -128,4 +201,21 @@ func isInitiallyDisplayed(arr []int, elem int) bool {
 		}
 	}
 	return false
+}
+
+func displayGame(hangmanState int, selectedWord WordDictonary, wordGuessTrack map[rune]bool, displayHint bool, oldMessage string) {
+	cmd := exec.Command("cmd", "/c", "cls")
+	cmd.Stdout = os.Stdout
+	cmd.Run()
+	displayHangman(hangmanState)
+	displayWords(selectedWord, wordGuessTrack)
+	if displayHint {
+		fmt.Println("HINT : ", selectedWord.Hint)
+	} else {
+		fmt.Println("Type hint to see word hint")
+	}
+
+	if len(oldMessage) > 0 {
+		fmt.Println(oldMessage)
+	}
 }
