@@ -5,5 +5,7 @@ import (
 )
 
 func main() {
-	fmt.Println("Welcome to Hangman world")
+	fmt.Println("easyWords ", easyWords)
+	fmt.Println("mediumWWords ", mediumWWords)
+	fmt.Println("difficultWords ", difficultWords)
 }
