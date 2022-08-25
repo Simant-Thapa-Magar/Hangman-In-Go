@@ -58,4 +58,9 @@ var difficultWords = []WordDictonary{
 		InitialDisplayPositions: []int{2},
 		Hint:                    "Pull",
 	},
+	{
+		Word:                    "Mississippi",
+		InitialDisplayPositions: []int{1, 3, 8},
+		Hint:                    "A state in the Southeastern region of the United States",
+	},
 }

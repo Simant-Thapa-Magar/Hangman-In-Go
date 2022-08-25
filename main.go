@@ -7,7 +7,7 @@ import (
 	"math/rand"
 	"os"
 	"os/exec"
-
+	"runtime"
 	"strconv"
 	"strings"
 	"time"
@@ -38,8 +38,6 @@ func main() {
 			oldMessage = message
 			if !isCorrectGuess {
 				hangmanState++
-			} else {
-				wordGuessTrack[rune(strings.ToLower(userInput)[0])] = true
 			}
 		}
 		if isHangmanComplete(hangmanState) {
@@ -132,7 +130,7 @@ func getUserInput() string {
 	var trimmedInput string
 	isValidInput := false
 	for !isValidInput {
-		fmt.Println("Guess a word ")
+		fmt.Println("Start Guessing (a letter) ")
 		printReaderIcon()
 		input, err := Scanner.ReadString('\n')
 
@@ -167,6 +165,7 @@ func determineInputProgress(input string, selectedWord WordDictonary, wordGuessT
 		for _, letter := range selectedWord.Word {
 			if strings.ToLower(string(letter)) == input {
 				isCorrectGuess = true
+				wordGuessTrack[rune(strings.ToLower(input)[0])] = true
 			}
 		}
 	}
@@ -204,9 +203,7 @@ func isInitiallyDisplayed(arr []int, elem int) bool {
 }
 
 func displayGame(hangmanState int, selectedWord WordDictonary, wordGuessTrack map[rune]bool, displayHint bool, oldMessage string) {
-	cmd := exec.Command("cmd", "/c", "cls")
-	cmd.Stdout = os.Stdout
-	cmd.Run()
+	clearScreen()
 	displayHangman(hangmanState)
 	displayWords(selectedWord, wordGuessTrack)
 	if displayHint {
@@ -217,5 +214,17 @@ func displayGame(hangmanState int, selectedWord WordDictonary, wordGuessTrack ma
 
 	if len(oldMessage) > 0 {
 		fmt.Println(oldMessage)
+	}
+}
+
+func clearScreen() {
+	if runtime.GOOS == "windows" {
+		cmd := exec.Command("cmd", "/c", "cls")
+		cmd.Stdout = os.Stdout
+		cmd.Run()
+	} else if runtime.GOOS == "linux" {
+		cmd := exec.Command("clear")
+		cmd.Stdout = os.Stdout
+		cmd.Run()
 	}
 }
