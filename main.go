@@ -79,7 +79,7 @@ func initializeGame() WordDictonary {
 			case 1:
 				possibleWordOptions = easyWords
 			case 2:
-				possibleWordOptions = mediumWWords
+				possibleWordOptions = mediumWords
 			case 3:
 				possibleWordOptions = difficultWords
 			}

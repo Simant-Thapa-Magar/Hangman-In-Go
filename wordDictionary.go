@@ -24,7 +24,7 @@ var easyWords = []WordDictonary{
 	},
 }
 
-var mediumWWords = []WordDictonary{
+var mediumWords = []WordDictonary{
 	{
 		Word:                    "Beekeeper",
 		InitialDisplayPositions: []int{2, 5},
