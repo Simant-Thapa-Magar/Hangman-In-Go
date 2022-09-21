@@ -223,8 +223,6 @@ func clearScreen() {
 		cmd.Stdout = os.Stdout
 		cmd.Run()
 	} else if runtime.GOOS == "linux" {
-		cmd := exec.Command("clear")
-		cmd.Stdout = os.Stdout
-		cmd.Run()
+		fmt.Println("\033[2J")
 	}
 }
